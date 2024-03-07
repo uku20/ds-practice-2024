@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package hello;
+
+service HelloService {
+    rpc SayHello (HelloRequest) returns (HelloResponse);
+}
+
+message HelloRequest {
+    string name = 1;
+}
+
+message HelloResponse {
+    string greeting = 1;
+}
+
+service FraudDetection {
+    rpc DetectFraud (FraudRequest) returns (FraudResponse);
+}
+
+message FraudRequest {
+    string name = 1;
+    string contact = 2;
+    string street = 3;
+    string city = 4;
+    string state = 5;
+}
+
+message FraudResponse {
+    bool response = 1;
+}

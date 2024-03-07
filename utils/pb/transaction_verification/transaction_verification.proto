@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package transaction;
+
+service TransactionService {
+    rpc VerifyTransaction (VerificationRequest) returns (VerificationResponse);
+}
+
+message VerificationRequest {
+    string number = 1;
+    string expirationDate = 2;
+    string cvv = 3;
+    string country = 4;
+    string zip = 5;
+}
+
+message VerificationResponse {
+    bool response = 1;
+}

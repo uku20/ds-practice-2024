@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package suggestions;
+
+service SuggestService {
+    rpc FindSuggestions (SuggestRequest) returns (SuggestResponse);
+}
+
+message SuggestRequest {
+    string name = 1;
+}
+
+message SuggestResponse {
+    repeated string firstSuggestion = 1;
+    repeated string secondSuggestion = 2;
+}
