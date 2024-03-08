@@ -12,9 +12,15 @@ import transaction_verification_pb2_grpc as transaction_verification_grpc
 
 import grpc
 from concurrent import futures
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 class TransactionService(transaction_verification_grpc.TransactionServiceServicer):
     def VerifyTransaction(self, request, context):
+        logger.info(f"Received transaction verification request: {request}")
         # Create a HelloResponse object
         response = transaction_verification.VerificationResponse()
         value = True
@@ -36,8 +42,8 @@ class TransactionService(transaction_verification_grpc.TransactionServiceService
 
         # Set the greeting field of the response object
         response.response = value
-        # Print the greeting message
-        print(response.response)
+        # Log before returning the response
+        logger.info(f"Returning transaction verification response: {response.response}")
         # Return the response object
         return response
 
@@ -49,9 +55,9 @@ def serve():
     # Listen on port 50051
     port = "50052"
     server.add_insecure_port("[::]:" + port)
+    logger.info("Server started. Listening on port {port}.")
     # Start the server
     server.start()
-    print("Server started. Listening on port 50052.")
     # Keep thread alive
     server.wait_for_termination()
 
