@@ -12,12 +12,16 @@ import suggestions_pb2_grpc as suggestions_grpc
 
 import grpc
 from concurrent import futures
+import logging
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 # Create a class to define the server functions, derived from
 # fraud_detection_pb2_grpc.HelloServiceServicer
 class SuggestService(suggestions_grpc.SuggestServiceServicer):
     # Create an RPC function to say hello
     def FindSuggestions(self, request, context):
+        logger.info("Received FindSuggestions request.")
         # Create a HelloResponse object
         response = suggestions.SuggestResponse()
         # Set the greeting field of the response object
@@ -71,8 +75,8 @@ class SuggestService(suggestions_grpc.SuggestServiceServicer):
         response.secondSuggestion.append(suggested_id_2)
         response.secondSuggestion.append(suggested_name_2)
         response.secondSuggestion.append(suggested_author_2)
-        # Print the greeting message
-        print(response)
+
+        logger.info(f"Sending response: {response}")
         # Return the response object
         return response
 
@@ -84,6 +88,8 @@ def serve():
     # Listen on port 50051
     port = "50053"
     server.add_insecure_port("[::]:" + port)
+    logger.info(f"Server started. Listening on port {port}.")
+
     # Start the server
     server.start()
     print("Server started. Listening on port 50053.")
