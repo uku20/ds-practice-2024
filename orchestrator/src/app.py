@@ -42,6 +42,10 @@ logger = logging.getLogger(__name__)
 
 def detect_fraud(name, contact, street, city, state):
     logger.info("Received fraud detection request for user: %s", name)
+    order_id = generate_order_id()
+    order_data[order_id] = {'name': name, 'contact': contact, 'street': street, 'city': city, 'state': state}
+    vector_clocks[order_id] = [0, 0, 0]  # Initialize vector clock for the order
+    time.sleep(1)  # Simulate processing time
     with grpc.insecure_channel('fraud_detection:50051') as channel:
         # Create a stub object.
         stub = fraud_detection_grpc.FraudDetectionStub(channel)
@@ -52,6 +56,10 @@ def detect_fraud(name, contact, street, city, state):
 
 def verify_transaction(number, expirationDate, cvv, country, zip):
     logger.info("Received transaction verification request for card number: %s", number)
+    order_id = generate_order_id()
+    order_data[order_id] = {'number': number, 'expirationDate': expirationDate, 'cvv': cvv, 'country': country, 'zip': zip}
+    vector_clocks[order_id] = [0, 0, 0]  # Initialize vector clock for the order
+    time.sleep(1)  # Simulate processing time
     with grpc.insecure_channel('transaction_verification:50052') as channel:
         stub = transaction_verification_grpc.TransactionServiceStub(channel)
         response = stub.VerifyTransaction(transaction_verification.VerificationRequest(number=number, expirationDate=expirationDate, cvv=cvv, country=country, zip=zip))
@@ -60,6 +68,10 @@ def verify_transaction(number, expirationDate, cvv, country, zip):
 
 def get_suggestions(name):
     logger.info("Received book suggestions request for book: %s", name)
+    order_id = generate_order_id()
+    order_data[order_id] = {'name': name}
+    vector_clocks[order_id] = [0, 0, 0]  # Initialize vector clock for the order
+    time.sleep(1)  # Simulate processing time
     with grpc.insecure_channel('suggestions:50053') as channel:
         stub = suggestions_grpc.SuggestServiceStub(channel)
         response = stub.FindSuggestions(suggestions.SuggestRequest(name=name))
@@ -88,6 +100,10 @@ def index():
     response = greet(name='orchestrator')
     # Return the response.
     return response
+
+# Function to increment vector clock for a given order
+def increment_vector_clock(order_id, index):
+    vector_clocks[order_id][index] += 1
 
 import uuid  # Import the uuid module
 # Function to generate a unique OrderID
@@ -123,18 +139,21 @@ def checkout():
     # Function to handle fraud detection
     def detect_fraud_task():
         logger.info("Starting fraud detection task")
-        return detect_fraud(data['user']['name'], data['user']['contact'], data['billingAddress']['street'], data['billingAddress']['city'], data['billingAddress']['state'])
-
+        result = detect_fraud(data['user']['name'], data['user']['contact'], data['billingAddress']['street'], data['billingAddress']['city'], data['billingAddress']['state'])
+        increment_vector_clock(data['orderId'], 0)  # Increment vector clock for fraud detection
+        return result
     # Function to handle transaction verification
     def verify_transaction_task():
         logger.info("Starting transaction verification task")
-        return verify_transaction(data['creditCard']['number'], data['creditCard']['expirationDate'], data['creditCard']['cvv'], data['billingAddress']['country'], data['billingAddress']['zip'])
-
+        result = verify_transaction(data['creditCard']['number'], data['creditCard']['expirationDate'], data['creditCard']['cvv'], data['billingAddress']['country'], data['billingAddress']['zip'])
+        increment_vector_clock(data['orderId'], 1)  # Increment vector clock for transaction verification
+        return result
     # Function to handle book suggestions
     def get_suggestions_task():
         logger.info("Starting book suggestions task")
-        return get_suggestions(data['items'][0]['name'])
-
+        result = get_suggestions(data['items'][0]['name'])
+        increment_vector_clock(data['orderId'], 2)  # Increment vector clock for book suggestions
+        return result
     # Create threads for each microservice
     fraud_thread = TaskThread(target=detect_fraud_task)
     verification_thread = TaskThread(target=verify_transaction_task)
