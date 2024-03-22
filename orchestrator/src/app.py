@@ -89,6 +89,11 @@ def index():
     # Return the response.
     return response
 
+import uuid  # Import the uuid module
+# Function to generate a unique OrderID
+def generate_order_id():
+    return str(uuid.uuid4())  # Generate a random UUID and convert it to a string
+
 import threading
 @app.route('/checkout', methods=['POST'])
 def checkout():
@@ -98,6 +103,10 @@ def checkout():
     data = request.json
     logger.info("Received checkout request: %s", data)
 
+    # Generate a unique OrderID for the current order
+    order_id = generate_order_id()
+    # Include the OrderID in the data payload sent to backend services
+    data['orderId'] = order_id
         
     class TaskThread(threading.Thread):
         def __init__(self, target, *args, **kwargs):
