@@ -23,8 +23,9 @@ import suggestions_pb2 as suggestions
 import suggestions_pb2_grpc as suggestions_grpc
 
 import grpc
+import time
 
-
+vector_clocks = {} 
 def greet(name='you'):
     # Establish a connection with the fraud-detection gRPC service.
     with grpc.insecure_channel('fraud_detection:50051') as channel:
@@ -43,6 +44,7 @@ logger = logging.getLogger(__name__)
 def detect_fraud(name, contact, street, city, state):
     logger.info("Received fraud detection request for user: %s", name)
     order_id = generate_order_id()
+    order_data = {}
     order_data[order_id] = {'name': name, 'contact': contact, 'street': street, 'city': city, 'state': state}
     vector_clocks[order_id] = [0, 0, 0]  # Initialize vector clock for the order
     time.sleep(1)  # Simulate processing time
@@ -54,21 +56,25 @@ def detect_fraud(name, contact, street, city, state):
     logger.info("Fraud detection response received: %s", response.response)
     return response.response
 
-def verify_transaction(number, expirationDate, cvv, country, zip):
+def verify_transaction(number, expirationDate, cvv, country, zip, orderItems, userData):
     logger.info("Received transaction verification request for card number: %s", number)
     order_id = generate_order_id()
+    order_data = {}
     order_data[order_id] = {'number': number, 'expirationDate': expirationDate, 'cvv': cvv, 'country': country, 'zip': zip}
     vector_clocks[order_id] = [0, 0, 0]  # Initialize vector clock for the order
     time.sleep(1)  # Simulate processing time
     with grpc.insecure_channel('transaction_verification:50052') as channel:
         stub = transaction_verification_grpc.TransactionServiceStub(channel)
-        response = stub.VerifyTransaction(transaction_verification.VerificationRequest(number=number, expirationDate=expirationDate, cvv=cvv, country=country, zip=zip))
+        request_items = [transaction_verification.OrderItem(itemId=item['id'], quantity=item['quantity'], description=item['description']) for item in orderItems]
+        request_user_data = transaction_verification.UserData(name=userData['name'], contact=userData['contact'], address=userData['address'])
+        response = stub.VerifyTransaction(transaction_verification.VerificationRequest(number=number, expirationDate=expirationDate, cvv=cvv, country=country, zip=zip, orderItems=request_items, userData=request_user_data))
     logger.info("Transaction verification response received: %s", response.response)
     return response.response
 
 def get_suggestions(name):
     logger.info("Received book suggestions request for book: %s", name)
     order_id = generate_order_id()
+    order_data = {}
     order_data[order_id] = {'name': name}
     vector_clocks[order_id] = [0, 0, 0]  # Initialize vector clock for the order
     time.sleep(1)  # Simulate processing time
@@ -82,7 +88,7 @@ def get_suggestions(name):
 # Flask is a web framework for Python.
 # It allows you to build a web application quickly.
 # For more information, see https://flask.palletsprojects.com/en/latest/
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 # Create a simple Flask app.
@@ -105,6 +111,13 @@ def index():
 def increment_vector_clock(order_id, index):
     vector_clocks[order_id][index] += 1
 
+def broadcast_clear_data(order_id):
+    final_vector_clock = vector_clocks.get(order_id, [0, 0, 0])
+    # Establish a channel and send ClearDataRequest to each service
+    with grpc.insecure_channel('your_service_address') as channel:
+        stub = your_service_pb2_grpc.YourServiceStub(channel)
+        stub.ClearData(your_service_pb2.ClearDataRequest(vector_clock=final_vector_clock))
+
 import uuid  # Import the uuid module
 # Function to generate a unique OrderID
 def generate_order_id():
@@ -123,7 +136,11 @@ def checkout():
     order_id = generate_order_id()
     # Include the OrderID in the data payload sent to backend services
     data['orderId'] = order_id
-        
+    vector_clocks[order_id] = [0, 0, 0]  # Initialize vector clock
+    # Initialize continue_processing as a threading.Event
+    continue_processing = threading.Event()
+    continue_processing.set()  # Initially allow processing to continue
+
     class TaskThread(threading.Thread):
         def __init__(self, target, *args, **kwargs):
             super(TaskThread, self).__init__(target=target, args=args, kwargs=kwargs)
@@ -134,7 +151,10 @@ def checkout():
             return self._result
 
         def run(self):
+            if not continue_processing.is_set():
+               return 
             self._result = self._target(*self._args, **self._kwargs)
+            # Check result and decide whether to continue
 
     # Function to handle fraud detection
     def detect_fraud_task():
@@ -145,7 +165,10 @@ def checkout():
     # Function to handle transaction verification
     def verify_transaction_task():
         logger.info("Starting transaction verification task")
-        result = verify_transaction(data['creditCard']['number'], data['creditCard']['expirationDate'], data['creditCard']['cvv'], data['billingAddress']['country'], data['billingAddress']['zip'])
+        orderItems = data.get('orderItems', [])
+        userData = data.get('userData', {})
+        result = verify_transaction(data['creditCard']['number'], data['creditCard']['expirationDate'], data['creditCard']['cvv'], data['billingAddress']['country'], data['billingAddress']['zip'],orderItems=orderItems,  # Include orderItems in the verification request
+        userData=userData)
         increment_vector_clock(data['orderId'], 1)  # Increment vector clock for transaction verification
         return result
     # Function to handle book suggestions
@@ -169,33 +192,23 @@ def checkout():
     verification_thread.join()
     suggestions_thread.join()
 
+    
     # Retrieve results from each microservice
     fraud_result = fraud_thread.result
     verification_result = verification_thread.result
     suggestions_result = suggestions_thread.result
 
     # Combine results and communicate the decision to the user frontend
-    if not fraud_result or not verification_result:
-        order_status_response = {'orderId': '10', 'status': 'Order Rejected'}
-    else:
-        # Process suggestions_result accordingly
-        first_name = suggestions_result.firstSuggestion[1]
-        first_id = suggestions_result.firstSuggestion[0]
-        first_author = suggestions_result.firstSuggestion[2]
-        second_name = suggestions_result.secondSuggestion[1]
-        second_id = suggestions_result.secondSuggestion[0]
-        second_author = suggestions_result.secondSuggestion[2]
+    all_results_successful = False  # Placeholder: you'll need logic here to determine this based on thread results
 
-        order_status_response = {
-            'orderId': '10',
-            'status': 'Order Approved',
-            'suggestedBooks': [
-                {'bookId': first_id, 'title': first_name, 'author': first_author},
-                {'bookId': second_id, 'title': second_name, 'author': second_author}
-            ]
-        }
-    logger.info("Returning order status response: %s", order_status_response)
-    return order_status_response
+    if not all_results_successful:
+        broadcast_clear_data(order_id)
+        return jsonify({'status': 'failure', 'orderId': order_id})
+    
+    # Success case - assuming you have logic to collect suggestions_thread.result appropriately
+    broadcast_clear_data(order_id)
+    return jsonify({'status': 'success', 'orderId': order_id, 'suggestions': suggestions_thread.result})
+
 
 
 

@@ -29,3 +29,14 @@ message FraudRequest {
 message FraudResponse {
     bool response = 1;
 }
+
+
+message ClearDataRequest {
+    repeated int32 vector_clock = 1;
+}
+
+import "google/protobuf/empty.proto";
+service YourService {
+    // Existing rpc methods
+    rpc ClearData(ClearDataRequest) returns (google.protobuf.Empty) {}
+}

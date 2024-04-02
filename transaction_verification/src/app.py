@@ -40,12 +40,22 @@ class TransactionService(transaction_verification_grpc.TransactionServiceService
         if(len(request.zip)<2):
             value = False
 
+        # Check if the order items list is not empty
+        if not request.orderItems:
+            value = False
+
+        # Check if mandatory user data is filled in
+        if not request.userData.name or not request.userData.contact or not request.userData.address:
+            value = False
         # Set the greeting field of the response object
         response.response = value
         # Log before returning the response
         logger.info(f"Returning transaction verification response: {response.response}")
         # Return the response object
-        return response
+        return transaction_verification.VerificationResponse(response=True)
+    def ClearData(self, request, context):
+        # Logic to clear data if your local vector clock <= request's vector clock
+        return google.protobuf.empty_pb2.Empty()
 
 def serve():
     # Create a gRPC server
