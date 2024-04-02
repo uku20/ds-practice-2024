@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package transaction;
+
+service TransactionService {
+    rpc VerifyTransaction (VerificationRequest) returns (VerificationResponse);
+}
+
+message VerificationRequest {
+    string number = 1;
+    string expirationDate = 2;
+    string cvv = 3;
+    string country = 4;
+    string zip = 5;
+}
+
+// Define the structure of an order item.
+message OrderItem {
+    string itemId = 1;
+    int32 quantity = 2;
+    string description = 3;
+}
+
+// Define the structure of user data.
+message UserData {
+    string name = 1;
+    string contact = 2;
+    string address = 3;
+}
+message VerificationResponse {
+    bool response = 1;
+}
+
+// Add to each of your service .proto files
+
+message ClearDataRequest {
+    repeated int32 vector_clock = 1;
+}
+
+import "google/protobuf/empty.proto";
+service YourService {
+    // Existing rpc methods
+    rpc ClearData(ClearDataRequest) returns (google.protobuf.Empty) {}
+}
+
