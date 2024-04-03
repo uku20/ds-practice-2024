@@ -48,7 +48,7 @@ class HelloService(fraud_detection_grpc.HelloServiceServicer):
         response.response = value
         logger.info(f"Sending response: {response.response}")
         # Return the response object
-        return fraud_detection.VerificationResponse(response=True)
+        return response
 
     def ClearData(self, request, context):
         # Logic to clear data if your local vector clock <= request's vector clock

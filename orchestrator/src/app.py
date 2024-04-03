@@ -22,6 +22,10 @@ sys.path.insert(0, utils_path)
 import suggestions_pb2 as suggestions
 import suggestions_pb2_grpc as suggestions_grpc
 
+import your_service_pb2 
+import your_service_pb2_grpc
+
+
 import grpc
 import time
 

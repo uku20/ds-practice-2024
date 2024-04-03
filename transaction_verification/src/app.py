@@ -52,7 +52,7 @@ class TransactionService(transaction_verification_grpc.TransactionServiceService
         # Log before returning the response
         logger.info(f"Returning transaction verification response: {response.response}")
         # Return the response object
-        return transaction_verification.VerificationResponse(response=True)
+        return response
     def ClearData(self, request, context):
         # Logic to clear data if your local vector clock <= request's vector clock
         return google.protobuf.empty_pb2.Empty()
