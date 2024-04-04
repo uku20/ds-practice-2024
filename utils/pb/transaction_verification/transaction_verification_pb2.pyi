@@ -20,27 +20,35 @@ class VerificationRequest(_message.Message):
     zip: str
     def __init__(self, number: _Optional[str] = ..., expirationDate: _Optional[str] = ..., cvv: _Optional[str] = ..., country: _Optional[str] = ..., zip: _Optional[str] = ...) -> None: ...
 
-class OrderItem(_message.Message):
-    __slots__ = ("itemId", "quantity", "description")
-    ITEMID_FIELD_NUMBER: _ClassVar[int]
-    QUANTITY_FIELD_NUMBER: _ClassVar[int]
-    DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
-    itemId: str
-    quantity: int
-    description: str
-    def __init__(self, itemId: _Optional[str] = ..., quantity: _Optional[int] = ..., description: _Optional[str] = ...) -> None: ...
+class VerificationResponse(_message.Message):
+    __slots__ = ("response",)
+    RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    response: bool
+    def __init__(self, response: bool = ...) -> None: ...
 
-class UserData(_message.Message):
-    __slots__ = ("name", "contact", "address")
+class OrderItemRequest(_message.Message):
+    __slots__ = ("name", "quantity")
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    QUANTITY_FIELD_NUMBER: _ClassVar[int]
+    name: str
+    quantity: int
+    def __init__(self, name: _Optional[str] = ..., quantity: _Optional[int] = ...) -> None: ...
+
+class OrderItemResponse(_message.Message):
+    __slots__ = ("response",)
+    RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    response: bool
+    def __init__(self, response: bool = ...) -> None: ...
+
+class UserDataRequest(_message.Message):
+    __slots__ = ("name", "contact")
     NAME_FIELD_NUMBER: _ClassVar[int]
     CONTACT_FIELD_NUMBER: _ClassVar[int]
-    ADDRESS_FIELD_NUMBER: _ClassVar[int]
     name: str
     contact: str
-    address: str
-    def __init__(self, name: _Optional[str] = ..., contact: _Optional[str] = ..., address: _Optional[str] = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., contact: _Optional[str] = ...) -> None: ...
 
-class VerificationResponse(_message.Message):
+class UserDataResponse(_message.Message):
     __slots__ = ("response",)
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: bool

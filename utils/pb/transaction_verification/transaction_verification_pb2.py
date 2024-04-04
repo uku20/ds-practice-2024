@@ -15,7 +15,7 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1etransaction_verification.proto\x12\x0btransaction\x1a\x1bgoogle/protobuf/empty.proto\"h\n\x13VerificationRequest\x12\x0e\n\x06number\x18\x01 \x01(\t\x12\x16\n\x0e\x65xpirationDate\x18\x02 \x01(\t\x12\x0b\n\x03\x63vv\x18\x03 \x01(\t\x12\x0f\n\x07\x63ountry\x18\x04 \x01(\t\x12\x0b\n\x03zip\x18\x05 \x01(\t\"B\n\tOrderItem\x12\x0e\n\x06itemId\x18\x01 \x01(\t\x12\x10\n\x08quantity\x18\x02 \x01(\x05\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\":\n\x08UserData\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07\x63ontact\x18\x02 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x03 \x01(\t\"(\n\x14VerificationResponse\x12\x10\n\x08response\x18\x01 \x01(\x08\"(\n\x10\x43learDataRequest\x12\x14\n\x0cvector_clock\x18\x01 \x03(\x05\x32n\n\x12TransactionService\x12X\n\x11VerifyTransaction\x12 .transaction.VerificationRequest\x1a!.transaction.VerificationResponse2S\n\x0bYourService\x12\x44\n\tClearData\x12\x1d.transaction.ClearDataRequest\x1a\x16.google.protobuf.Empty\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1etransaction_verification.proto\x12\x0btransaction\x1a\x1bgoogle/protobuf/empty.proto\"h\n\x13VerificationRequest\x12\x0e\n\x06number\x18\x01 \x01(\t\x12\x16\n\x0e\x65xpirationDate\x18\x02 \x01(\t\x12\x0b\n\x03\x63vv\x18\x03 \x01(\t\x12\x0f\n\x07\x63ountry\x18\x04 \x01(\t\x12\x0b\n\x03zip\x18\x05 \x01(\t\"(\n\x14VerificationResponse\x12\x10\n\x08response\x18\x01 \x01(\x08\"2\n\x10OrderItemRequest\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x10\n\x08quantity\x18\x02 \x01(\x05\"%\n\x11OrderItemResponse\x12\x10\n\x08response\x18\x01 \x01(\x08\"0\n\x0fUserDataRequest\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07\x63ontact\x18\x02 \x01(\t\"$\n\x10UserDataResponse\x12\x10\n\x08response\x18\x01 \x01(\x08\"(\n\x10\x43learDataRequest\x12\x14\n\x0cvector_clock\x18\x01 \x03(\x05\x32n\n\x12TransactionService\x12X\n\x11VerifyTransaction\x12 .transaction.VerificationRequest\x1a!.transaction.VerificationResponse2i\n\x10OrderItemService\x12U\n\x14OrderItemTransaction\x12\x1d.transaction.OrderItemRequest\x1a\x1e.transaction.OrderItemResponse2e\n\x0fUserDataService\x12R\n\x13UserDataTransaction\x12\x1c.transaction.UserDataRequest\x1a\x1d.transaction.UserDataResponse2S\n\x0bYourService\x12\x44\n\tClearData\x12\x1d.transaction.ClearDataRequest\x1a\x16.google.protobuf.Empty\"\x00\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -24,16 +24,24 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
   _globals['_VERIFICATIONREQUEST']._serialized_start=76
   _globals['_VERIFICATIONREQUEST']._serialized_end=180
-  _globals['_ORDERITEM']._serialized_start=182
-  _globals['_ORDERITEM']._serialized_end=248
-  _globals['_USERDATA']._serialized_start=250
-  _globals['_USERDATA']._serialized_end=308
-  _globals['_VERIFICATIONRESPONSE']._serialized_start=310
-  _globals['_VERIFICATIONRESPONSE']._serialized_end=350
-  _globals['_CLEARDATAREQUEST']._serialized_start=352
-  _globals['_CLEARDATAREQUEST']._serialized_end=392
-  _globals['_TRANSACTIONSERVICE']._serialized_start=394
-  _globals['_TRANSACTIONSERVICE']._serialized_end=504
-  _globals['_YOURSERVICE']._serialized_start=506
-  _globals['_YOURSERVICE']._serialized_end=589
+  _globals['_VERIFICATIONRESPONSE']._serialized_start=182
+  _globals['_VERIFICATIONRESPONSE']._serialized_end=222
+  _globals['_ORDERITEMREQUEST']._serialized_start=224
+  _globals['_ORDERITEMREQUEST']._serialized_end=274
+  _globals['_ORDERITEMRESPONSE']._serialized_start=276
+  _globals['_ORDERITEMRESPONSE']._serialized_end=313
+  _globals['_USERDATAREQUEST']._serialized_start=315
+  _globals['_USERDATAREQUEST']._serialized_end=363
+  _globals['_USERDATARESPONSE']._serialized_start=365
+  _globals['_USERDATARESPONSE']._serialized_end=401
+  _globals['_CLEARDATAREQUEST']._serialized_start=403
+  _globals['_CLEARDATAREQUEST']._serialized_end=443
+  _globals['_TRANSACTIONSERVICE']._serialized_start=445
+  _globals['_TRANSACTIONSERVICE']._serialized_end=555
+  _globals['_ORDERITEMSERVICE']._serialized_start=557
+  _globals['_ORDERITEMSERVICE']._serialized_end=662
+  _globals['_USERDATASERVICE']._serialized_start=664
+  _globals['_USERDATASERVICE']._serialized_end=765
+  _globals['_YOURSERVICE']._serialized_start=767
+  _globals['_YOURSERVICE']._serialized_end=850
 # @@protoc_insertion_point(module_scope)

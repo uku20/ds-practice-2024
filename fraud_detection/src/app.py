@@ -50,10 +50,6 @@ class HelloService(fraud_detection_grpc.HelloServiceServicer):
         # Return the response object
         return response
 
-    def ClearData(self, request, context):
-        # Logic to clear data if your local vector clock <= request's vector clock
-        return google.protobuf.empty_pb2.Empty()
-
 def serve():
     # Create a gRPC server
     server = grpc.server(futures.ThreadPoolExecutor())

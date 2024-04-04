@@ -14,23 +14,35 @@ message VerificationRequest {
     string zip = 5;
 }
 
-// Define the structure of an order item.
-message OrderItem {
-    string itemId = 1;
-    int32 quantity = 2;
-    string description = 3;
-}
-
-// Define the structure of user data.
-message UserData {
-    string name = 1;
-    string contact = 2;
-    string address = 3;
-}
 message VerificationResponse {
     bool response = 1;
 }
 
+service OrderItemService {
+    rpc OrderItemTransaction (OrderItemRequest) returns (OrderItemResponse);
+}
+
+message OrderItemRequest {
+    string name = 1;
+    int32 quantity = 2;
+}
+
+message OrderItemResponse {
+    bool response = 1;
+}
+
+service UserDataService {
+    rpc UserDataTransaction (UserDataRequest) returns (UserDataResponse);
+}
+
+message UserDataRequest {
+    string name = 1;
+    string contact = 2;
+}
+
+message UserDataResponse {
+    bool response = 1;
+}
 // Add to each of your service .proto files
 
 message ClearDataRequest {

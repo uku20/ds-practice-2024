@@ -40,28 +40,58 @@ class TransactionService(transaction_verification_grpc.TransactionServiceService
         if(len(request.zip)<2):
             value = False
 
-        # Check if the order items list is not empty
-        if not request.orderItems:
-            value = False
-
-        # Check if mandatory user data is filled in
-        if not request.userData.name or not request.userData.contact or not request.userData.address:
-            value = False
         # Set the greeting field of the response object
         response.response = value
         # Log before returning the response
-        logger.info(f"Returning transaction verification response: {response.response}")
+        logger.info(f"Returning transaction verification step1: {response.response}")
         # Return the response object
         return response
-    def ClearData(self, request, context):
-        # Logic to clear data if your local vector clock <= request's vector clock
-        return google.protobuf.empty_pb2.Empty()
+
+class UserDataService(transaction_verification_grpc.UserDataServiceServicer):
+    def UserDataTransaction(self, request, context):
+        logger.info(f"Received transaction verification request: {request}")
+        # Create a HelloResponse object
+        response = transaction_verification.OrderItemResponse()
+        value = True
+
+        if (len(request.name)<1):
+            value = False
+
+        if (len(request.contact)<1):
+            value = False
+    
+        response.response = value
+        # Log before returning the response
+        logger.info(f"Returning transaction verification step2: {response.response}")
+        # Return the response object
+        return response
+
+class OrderItemService(transaction_verification_grpc.OrderItemServiceServicer):
+    def OrderItemTransaction(self, request, context):
+        logger.info(f"Received transaction verification request: {request}")
+        # Create a HelloResponse object
+        response = transaction_verification.OrderItemResponse()
+        value = True
+
+        if(len(request.name)<1):
+            value = False
+
+        if(request.quantity<1):
+            value = False
+    
+        response.response = value
+        # Log before returning the response
+        logger.info(f"Returning transaction verification step2: {response.response}")
+        # Return the response object
+        return response
 
 def serve():
     # Create a gRPC server
     server = grpc.server(futures.ThreadPoolExecutor())
     # Add HelloService
     transaction_verification_grpc.add_TransactionServiceServicer_to_server(TransactionService(), server)
+    transaction_verification_grpc.add_UserDataServiceServicer_to_server(UserDataService(), server)
+    transaction_verification_grpc.add_OrderItemServiceServicer_to_server(OrderItemService(), server)
     # Listen on port 50051
     port = "50052"
     server.add_insecure_port("[::]:" + port)

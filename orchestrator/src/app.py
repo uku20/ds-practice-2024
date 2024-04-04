@@ -66,10 +66,17 @@ def verify_transaction(number, expirationDate, cvv, country, zip, orderItems, us
     vector_clocks[order_id] = [0, 0, 0]  # Initialize vector clock for the order
     time.sleep(1)  # Simulate processing time
     with grpc.insecure_channel('transaction_verification:50052') as channel:
-        stub = transaction_verification_grpc.TransactionServiceStub(channel)
-        request_items = [transaction_verification.OrderItem(itemId=item['id'], quantity=item['quantity'], description=item['description']) for item in orderItems]
-        request_user_data = transaction_verification.UserData(name=userData['name'], contact=userData['contact'], address=userData['address'])
-        response = stub.VerifyTransaction(transaction_verification.VerificationRequest(number=number, expirationDate=expirationDate, cvv=cvv, country=country, zip=zip, orderItems=request_items, userData=request_user_data))
+        stub1 = transaction_verification_grpc.TransactionServiceStub(channel)
+        stub2 = transaction_verification_grpc.OrderItemServiceStub(channel)
+        stub3 = transaction_verification_grpc.UserDataServiceStub(channel)
+        for item in orderItems:
+            items_response = stub2.OrderItemTransaction(transaction_verification.OrderItemRequest(name = item['name'], quantity = item['quantity']))
+            if (items_response):
+                print("THIS STEP WAS COMPLETED SUCCESSFULLY")
+        user_data_response = stub3.UserDataTransaction(transaction_verification.UserDataRequest(name=userData['name'], contact=userData['contact']))
+        if (user_data_response):
+            print("THIS STEP WAS COMPLETED SUCCESSFULLY")
+        response = stub1.VerifyTransaction(transaction_verification.VerificationRequest(number=number, expirationDate=expirationDate, cvv=cvv, country=country, zip=zip))
     logger.info("Transaction verification response received: %s", response.response)
     return response.response
 
@@ -162,16 +169,15 @@ def checkout():
     def detect_fraud_task():
         logger.info("Starting fraud detection task")
         result = detect_fraud(data['user']['name'], data['user']['contact'], data['billingAddress']['street'], data['billingAddress']['city'], data['billingAddress']['state'])
-        increment_vector_clock(data['orderId'], 0)  # Increment vector clock for fraud detection
+        increment_vector_clock(data['orderId'], 1)  # Increment vector clock for fraud detection
         return result
     # Function to handle transaction verification
     def verify_transaction_task():
         logger.info("Starting transaction verification task")
-        orderItems = data.get('orderItems', [])
-        userData = data.get('userData', {})
-        result = verify_transaction(data['creditCard']['number'], data['creditCard']['expirationDate'], data['creditCard']['cvv'], data['billingAddress']['country'], data['billingAddress']['zip'],orderItems=orderItems,  # Include orderItems in the verification request
-        userData=userData)
-        increment_vector_clock(data['orderId'], 1)  # Increment vector clock for transaction verification
+        orderItems = data.get('items', [])
+        userData = data.get('user', {})
+        result = verify_transaction(data['creditCard']['number'], data['creditCard']['expirationDate'], data['creditCard']['cvv'], data['billingAddress']['country'], data['billingAddress']['zip'],orderItems=orderItems, userData=userData)
+        increment_vector_clock(data['orderId'], 0)  # Increment vector clock for transaction verification
         return result
     # Function to handle book suggestions
     def get_suggestions_task():
@@ -204,11 +210,11 @@ def checkout():
     all_results_successful = False  # Placeholder: you'll need logic here to determine this based on thread results
 
     if not all_results_successful:
-        broadcast_clear_data(order_id)
+        #broadcast_clear_data(order_id)
         return jsonify({'status': 'failure', 'orderId': order_id})
     
     # Success case - assuming you have logic to collect suggestions_thread.result appropriately
-    broadcast_clear_data(order_id)
+    #broadcast_clear_data(order_id)
     return jsonify({'status': 'success', 'orderId': order_id, 'suggestions': suggestions_thread.result})
 
 
