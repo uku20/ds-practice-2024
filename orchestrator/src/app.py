@@ -22,8 +22,6 @@ sys.path.insert(0, utils_path)
 import suggestions_pb2 as suggestions
 import suggestions_pb2_grpc as suggestions_grpc
 
-import your_service_pb2 
-import your_service_pb2_grpc
 
 
 import grpc
@@ -119,8 +117,8 @@ def broadcast_clear_data(order_id):
     final_vector_clock = vector_clocks.get(order_id, [0, 0, 0])
     # Establish a channel and send ClearDataRequest to each service
     with grpc.insecure_channel('your_service_address') as channel:
-        stub = your_service_pb2_grpc.YourServiceStub(channel)
-        stub.ClearData(your_service_pb2.ClearDataRequest(vector_clock=final_vector_clock))
+        stub = suggestions_grpc.YourServiceStub(channel)
+        stub.ClearData(suggestions.ClearDataRequest(vector_clock=final_vector_clock))
 
 import uuid  # Import the uuid module
 # Function to generate a unique OrderID
