@@ -51,7 +51,7 @@ class UserDataService(transaction_verification_grpc.UserDataServiceServicer):
     def UserDataTransaction(self, request, context):
         logger.info(f"Received transaction verification request: {request}")
         # Create a HelloResponse object
-        response = transaction_verification.OrderItemResponse()
+        response = transaction_verification.UserDataResponse()
         value = True
 
         if (len(request.name)<1):
