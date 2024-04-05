@@ -22,7 +22,17 @@ sys.path.insert(0, utils_path)
 import suggestions_pb2 as suggestions
 import suggestions_pb2_grpc as suggestions_grpc
 
+FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
+utils_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/queue'))
+sys.path.insert(0, utils_path)
+import queue_pb2 as queue
+import queue_pb2_grpc as queue_grpc
 
+FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
+utils_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/executor'))
+sys.path.insert(0, utils_path)
+import executor_pb2 as executor
+import executor_pb2_grpc as executor_grpc
 
 import grpc
 import time
@@ -91,6 +101,37 @@ def get_suggestions(name):
         stub = suggestions_grpc.SuggestServiceStub(channel)
         response = stub.FindSuggestions(suggestions.SuggestRequest(name=name))
     logger.info("Book suggestions response received: %s", response)
+    return response
+
+def add_to_queue(orderId, name, number, expirationDate, cvv, contact):
+    time.sleep(1)  # Simulate processing time
+    with grpc.insecure_channel('queue:50055') as channel:
+        # Create a stub object.
+        stub = queue_grpc.QueueServiceStub(channel)
+        # Call the service through the stub object.
+        response = stub.AddtoQueue(queue.AddtoQueueRequest(orderId=orderId, name=name, number=number, expirationDate=expirationDate, cvv=cvv, contact=contact))
+    logger.info("Added to queue: %s", response.response)
+    return response.response
+
+def get_from_queue(orderId):
+    time.sleep(1)  # Simulate processing time
+    with grpc.insecure_channel('queue:50055') as channel:
+        # Create a stub object.
+        stub = queue_grpc.QueueServiceStub(channel)
+        # Call the service through the stub object.
+        response = stub.RequestFromQueue(queue.AddtoQueueRequest(orderId=orderId))
+    logger.info("Received From Queue: %s", response)
+    return response
+
+def executeorder(orderId):
+    time.sleep(1)  # Simulate processing time
+    logger.info("Executing order: %s", orderId)
+    with grpc.insecure_channel('executor:50056') as channel:
+        # Create a stub object.
+        stub = executor_grpc.ExecuteOrderServiceStub(channel) 
+        order = get_from_queue(orderId)
+        orderid = order.orderId
+        response = stub.Execute(executor.ExecuteRequest(orderId=orderid))
     return response
 
 # Import Flask.
@@ -207,15 +248,30 @@ def checkout():
     suggestions_result = suggestions_thread.result
 
     # Combine results and communicate the decision to the user frontend
-    all_results_successful = False  # Placeholder: you'll need logic here to determine this based on thread results
+    if not fraud_result or not verification_result:
+        order_status_response = {'orderId': order_id, 'status': 'Order Rejected'}
+    else:
+        # Process suggestions_result accordingly
+        first_name = suggestions_result.firstSuggestion[1]
+        first_id = suggestions_result.firstSuggestion[0]
+        first_author = suggestions_result.firstSuggestion[2]
+        second_name = suggestions_result.secondSuggestion[1]
+        second_id = suggestions_result.secondSuggestion[0]
+        second_author = suggestions_result.secondSuggestion[2]
 
-    if not all_results_successful:
-        #broadcast_clear_data(order_id)
-        return jsonify({'status': 'failure', 'orderId': order_id})
-    
-    # Success case - assuming you have logic to collect suggestions_thread.result appropriately
-    #broadcast_clear_data(order_id)
-    return jsonify({'status': 'success', 'orderId': order_id, 'suggestions': suggestions_thread.result})
+        order_status_response = {
+            'orderId': order_id,
+            'status': 'Order Approved',
+            'suggestedBooks': [
+                {'bookId': first_id, 'title': first_name, 'author': first_author},
+                {'bookId': second_id, 'title': second_name, 'author': second_author}
+            ]
+        }
+        add_to_queue(order_id, data['user']['name'], data['creditCard']['number'], data['creditCard']['expirationDate'], data['creditCard']['cvv'], data['user']['contact'])
+        executeorder(order_id)
+    logger.info("Returning order status response: %s", order_status_response)
+    return order_status_response
+
 
 
 

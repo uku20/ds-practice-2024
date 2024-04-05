@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package executor;
+
+service ExecuteOrderService {
+    rpc Execute (ExecuteRequest) returns (ExecuteResponse);
+}
+
+message ExecuteRequest {
+    string orderId = 1;
+}
+
+message ExecuteResponse {
+    bool response = 1;
+}
