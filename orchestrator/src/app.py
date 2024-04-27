@@ -34,6 +34,12 @@ sys.path.insert(0, utils_path)
 import executor_pb2 as executor
 import executor_pb2_grpc as executor_grpc
 
+FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
+utils_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/book_database'))
+sys.path.insert(0, utils_path)
+import book_database_pb2 as bookdatabase
+import book_database_pb2_grpc as bookatabase_grpc
+
 import grpc
 import time
 
@@ -132,6 +138,24 @@ def executeorder(orderId):
         order = get_from_queue(orderId)
         orderid = order.orderId
         response = stub.Execute(executor.ExecuteRequest(orderId=orderid))
+    return response
+
+def read(key):
+    time.sleep(1)  # Simulate processing time
+    logger.info("read: %s", key)
+    with grpc.insecure_channel('book_database:50057') as channel:
+        # Create a stub object.
+        stub = bookatabase_grpc.BookDatabaseStub(channel) 
+        response = stub.Read(bookdatabase.ReadRequest(key=key))
+    return response
+
+def write(key,value):
+    time.sleep(1)  # Simulate processing time
+    logger.info("write: %s", value)
+    with grpc.insecure_channel('book_database:50057') as channel:
+        # Create a stub object.
+        stub = bookatabase_grpc.BookDatabaseStub(channel) 
+        response = stub.Write(bookdatabase.WriteRequest(key=key,value=value))
     return response
 
 # Import Flask.
