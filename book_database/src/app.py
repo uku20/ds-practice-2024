@@ -16,6 +16,7 @@ class BooksDatabaseService(books_db_pb2_grpc.BooksDatabaseServicer):
 
     def Read(self, request, context):
         # Delegate read to the raft node (leader)
+        logger.info(f"Read: {request}")
         if self.raft_node.state == 'leader':
             value = self.raft_node.state_machine.get(request.key)
             return books_db_pb2.ReadResponse(value=value)
@@ -24,6 +25,7 @@ class BooksDatabaseService(books_db_pb2_grpc.BooksDatabaseServicer):
 
     def Write(self, request, context):
         # Delegate write to the raft node (leader)
+        logger.info(f"Write: {request}")
         if self.raft_node.state == 'leader':
             self.raft_node.state_machine[request.key] = request.value
             return books_db_pb2.WriteResponse(success=True)
