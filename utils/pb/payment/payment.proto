@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package payment;
+
+service PaymentService {
+    rpc Vote (VoteRequest) returns (VoteResponse);
+}
+
+message VoteRequest {
+    string request = 1;
+}
+
+message VoteResponse {
+    string response = 1;
+}

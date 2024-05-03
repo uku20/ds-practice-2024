@@ -35,10 +35,16 @@ import executor_pb2 as executor
 import executor_pb2_grpc as executor_grpc
 
 FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
-utils_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/book_database'))
+utils_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/book_databse'))
 sys.path.insert(0, utils_path)
 import book_database_pb2 as bookdatabase
 import book_database_pb2_grpc as bookatabase_grpc
+
+FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
+utils_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/payment'))
+sys.path.insert(0, utils_path)
+import payment_pb2 as payment
+import payment_pb2_grpc as payment_grpc
 
 import grpc
 import time
@@ -137,7 +143,11 @@ def executeorder(orderId):
         stub = executor_grpc.ExecuteOrderServiceStub(channel) 
         order = get_from_queue(orderId)
         orderid = order.orderId
-        response = stub.Execute(executor.ExecuteRequest(orderId=orderid))
+        pc = vote()
+        if (pc == "VOTE-COMMIT"):
+            response = stub.Execute(executor.ExecuteRequest(orderId=orderid))
+        else:
+            pass
     return response
 
 def read(key):
@@ -156,6 +166,14 @@ def write(key,value):
         # Create a stub object.
         stub = bookatabase_grpc.BookDatabaseStub(channel) 
         response = stub.Write(bookdatabase.WriteRequest(key=key,value=value))
+    return response
+
+def vote():
+    time.sleep(1)
+    with grpc.insecure_channel('payment:50058') as channel:
+        # Create a stub object.
+        stub = payment_grpc.PaymentOrderServiceStub(channel) 
+        response = stub.Execute(payment.VoteRequest(name="request"))
     return response
 
 # Import Flask.
