@@ -25,7 +25,7 @@ class PaymentService(payment_grpc.PaymentServiceServicer):
         # Create a HelloResponse object
         response = payment.VoteResponse()
         # Set the greeting field of the response object
-        if (request.name == "request"):
+        if (request.request == "request"):
             response.response = "VOTE-COMMIT"
         else:
             response.response = "VOTE-ABORT"

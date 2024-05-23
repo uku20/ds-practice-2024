@@ -144,7 +144,7 @@ def executeorder(orderId):
         order = get_from_queue(orderId)
         orderid = order.orderId
         pc = vote()
-        if (pc == "VOTE-COMMIT"):
+        if (pc.response == "VOTE-COMMIT"):
             response = stub.Execute(executor.ExecuteRequest(orderId=orderid))
         else:
             pass
@@ -172,8 +172,8 @@ def vote():
     time.sleep(1)
     with grpc.insecure_channel('payment:50058') as channel:
         # Create a stub object.
-        stub = payment_grpc.PaymentOrderServiceStub(channel) 
-        response = stub.Execute(payment.VoteRequest(name="request"))
+        stub = payment_grpc.PaymentServiceStub(channel) 
+        response = stub.Vote(payment.VoteRequest(request="request"))
     return response
 
 # Import Flask.
