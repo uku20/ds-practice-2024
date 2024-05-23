@@ -1,5 +1,6 @@
 import sys
 import os
+from flask import Flask, request, jsonify
 
 # This set of lines are needed to import the gRPC stubs.
 # The path of the stubs is relative to the current file, or absolute inside the container.
@@ -312,7 +313,7 @@ def checkout():
         add_to_queue(order_id, data['user']['name'], data['creditCard']['number'], data['creditCard']['expirationDate'], data['creditCard']['cvv'], data['user']['contact'])
         executeorder(order_id)
     logger.info("Returning order status response: %s", order_status_response)
-    return order_status_response
+    return jsonify(order_status_response)
 
 
 
