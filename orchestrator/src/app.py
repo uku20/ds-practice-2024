@@ -50,6 +50,18 @@ import payment_pb2_grpc as payment_grpc
 import grpc
 import time
 
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+
+from opentelemetry import trace
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+from opentelemetry import metrics
+from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+
 vector_clocks = {} 
 def greet(name='you'):
     # Establish a connection with the fraud-detection gRPC service.
@@ -323,4 +335,20 @@ if __name__ == '__main__':
     # Run the app in debug mode to enable hot reloading.
     # This is useful for development.
     # The default port is 5000.
+    
+    # Service name is required for most backends
+    resource = Resource(attributes={
+        SERVICE_NAME: "transaction_verification-1"
+    })
+
+    traceProvider = TracerProvider(resource=resource)
+    processor = BatchSpanProcessor(OTLPSpanExporter(endpoint="http://observability:4318/v1/traces"))
+    traceProvider.add_span_processor(processor)
+    trace.set_tracer_provider(traceProvider)
+
+    reader = PeriodicExportingMetricReader(
+        OTLPMetricExporter(endpoint="http://observability:4318/v1/metrics")
+    )
+    meterProvider = MeterProvider(resource=resource, metric_readers=[reader])
+    metrics.set_meter_provider(meterProvider)
     app.run(host='0.0.0.0')
